@@ -6,16 +6,15 @@ import csv
 import os
 
 # Files to load and output (update with correct file paths)
-file_to_load = os.path.join("Resources", "budget_data.csv")  # Input file path
+file_to_load = os.path.join("C:\\Users\\LENOVO\\OneDrive\\Bootcamp\\Python-challenge\\PyBank\\Resources\\budget_data.csv")  # Input file path
 file_to_output = os.path.join("analysis", "budget_analysis.txt")  # Output file path
 
 # Define variables to track the financial data
 total_months = 0
-total_net = 0
-previous_profit_losses = None
+net_total = 0
+previous_profit = None
 changes = []
 dates = []
-# Add more variables to track other necessary financial data
 
 # Open and read the csv
 with open(file_to_load) as financial_data:
@@ -25,10 +24,10 @@ with open(file_to_load) as financial_data:
     header = next(reader)
 
     # Extract first row to avoid appending to net_change_list
-
-
-        # Track the total number of months
-    total_months += 1    
+    first_row = next(reader)
+    total_months += 1
+    net_total += int(first_row[1])
+    previous_profit = int(first_row[1])
 
     # Process each row of data
     for row in reader:
@@ -36,41 +35,42 @@ with open(file_to_load) as financial_data:
         profit_losses = int(row[1])
 
         # Track the total
-    total_months += 1
+        total_months += 1
 
         # Track the net change
-    net_total += profit_losses
+        net_total += profit_losses
 
-        # Calculate the greatest increase in profits (month and amount)
+        # Calculate changes in "Profit/Losses"
+        if previous_profit is not None:
+            change = profit_losses - previous_profit
+            changes.append(change)
+            dates.append(date)
+        previous_profit = profit_losses
+
+# Calculate the greatest increase and decrease in profits
+if changes:
     greatest_increase = max(changes)
     greatest_increase_date = dates[changes.index(greatest_increase)]
-        # Calculate the greatest decrease in losses (month and amount)
     greatest_decrease = min(changes)
     greatest_decrease_date = dates[changes.index(greatest_decrease)]
+    average_change = sum(changes) / len(changes)
 
+    # Generate the output summary
+    summary = (
+        "Financial Analysis\n"
+        "----------------------------\n"
+        f"Total Months: {total_months}\n"
+        f"Total: ${net_total}\n"
+        f"Average Change: ${average_change:.2f}\n"
+        f"Greatest Increase in Profits: {greatest_increase_date} (${greatest_increase})\n"
+        f"Greatest Decrease in Profits: {greatest_decrease_date} (${greatest_decrease})\n"
+    )
 
-# Calculate the average net change across the months
-average_change = sum(changes) / len(changes)
+    # Print the output
+    print(summary)
 
-
-# Generate the output summary
-
-# Print the output
-print("Financial Analysis")
-print("----------------------------")
-print(f"Total Months: {total_months}")
-print(f"Total: ${net_total}")
-print(f"Average Change: ${average_change:.2f}")
-print(f"Greatest Increase in Profits: {greatest_increase_date} (${greatest_increase})")
-print(f"Greatest Decrease in Profits: {greatest_decrease_date} (${greatest_decrease})")
-
-
-# Write the results to a text file
-with open('financial_analysis.txt', 'w') as txtfile:
-    txtfile.write("Financial Analysis\n")
-    txtfile.write("----------------------------\n")
-    txtfile.write(f"Total Months: {total_months}\n")
-    txtfile.write(f"Total: ${net_total}\n")
-    txtfile.write(f"Average Change: ${average_change:.2f}\n")
-    txtfile.write(f"Greatest Increase in Profits: {greatest_increase_date} (${greatest_increase})\n")
-    txtfile.write(f"Greatest Decrease in Profits: {greatest_decrease_date} (${greatest_decrease})\n")
+    # Write the results to a text file
+    with open(file_to_output, 'w') as txtfile:
+        txtfile.write(summary)
+else:
+    print("No changes in Profit/Losses to analyze.")
